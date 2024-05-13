@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { ConsoleLogger, Module } from '@nestjs/common';
 import { DiscordService } from './discord.service';
 import { Client, GatewayIntentBits } from 'discord.js';
 
@@ -11,6 +11,7 @@ import { Client, GatewayIntentBits } from 'discord.js';
         intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages],
       }),
     },
+    ConsoleLogger,
   ],
   exports: [DiscordService],
 })

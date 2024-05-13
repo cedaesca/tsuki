@@ -12,7 +12,7 @@ export class DiscordService {
     this.logger.setContext(DiscordService.name);
   }
 
-  public async bootstrap(): Promise<void> {
+  public async init(): Promise<void> {
     this.client.on(Events.ClientReady, () => {
       this.logger.log(`Logged in as ${this.client.user.tag}!`);
     });
@@ -27,6 +27,6 @@ export class DiscordService {
       this.logger.log(`Command received: ${commandName}`);
     });
 
-    await this.client.login(this.configService.get<string>('BOT_TOKEN'));
+    await this.client.login(this.configService.get<string>('BOT_SECRET'));
   }
 }

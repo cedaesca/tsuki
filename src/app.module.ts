@@ -1,7 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { DiscordModule } from './discord/discord.module';
-import { CommandModule } from './command/command.module';
 
 @Module({
   imports: [
@@ -9,7 +8,6 @@ import { CommandModule } from './command/command.module';
       isGlobal: true,
     }),
     DiscordModule,
-    CommandModule,
   ],
   controllers: [],
   providers: [],

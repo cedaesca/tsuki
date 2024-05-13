@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { DiscordModule } from './discord/discord.module';
+import { CommandsModule } from './commands/commands.module';
 
 @Module({
   imports: [
@@ -8,6 +9,7 @@ import { DiscordModule } from './discord/discord.module';
       isGlobal: true,
     }),
     DiscordModule,
+    CommandsModule,
   ],
   controllers: [],
   providers: [],

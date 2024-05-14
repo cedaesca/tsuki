@@ -1,6 +1,6 @@
 import { Injectable, ConsoleLogger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { Client, Events } from 'discord.js';
+import { Client, CommandInteraction, Events } from 'discord.js';
 import { CommandsService } from 'src/commands/commands.service';
 
 @Injectable()
@@ -25,11 +25,7 @@ export class DiscordService {
         return;
       }
 
-      const { commandName } = interaction;
-
-      const command = this.commandsService.getCommand(commandName);
-
-      command.execute(interaction);
+      this.handleCommandInteraction(interaction);
     });
 
     await this.client.login(this.configService.get<string>('BOT_SECRET'));
@@ -41,5 +37,12 @@ export class DiscordService {
     commands.forEach((command) => {
       this.client.application.commands.create(command.data.toJSON());
     });
+  }
+
+  private handleCommandInteraction(interaction: CommandInteraction) {
+    const { commandName } = interaction;
+    const command = this.commandsService.getCommand(commandName);
+
+    command.execute(interaction);
   }
 }

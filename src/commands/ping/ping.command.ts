@@ -9,7 +9,7 @@ export class PingCommand implements Command {
     .setDescription('Replies with Pong!')
     .setDescriptionLocalization('es-419', 'Responde con Pong!');
 
-  async execute(interaction: CommandInteraction): Promise<void> {
+  public async execute(interaction: CommandInteraction): Promise<void> {
     await interaction.reply('Pong!');
   }
 }

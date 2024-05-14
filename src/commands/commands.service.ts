@@ -16,6 +16,10 @@ export class CommandsService implements OnModuleInit {
     return this.commands.get(name);
   }
 
+  public getAllCommands(): Command[] {
+    return this.commandInstances;
+  }
+
   private organizeCommands(): void {
     this.commandInstances.forEach((command) => {
       this.commands.set(command.data.name, command);

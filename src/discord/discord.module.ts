@@ -1,8 +1,11 @@
 import { ConsoleLogger, Module } from '@nestjs/common';
 import { DiscordService } from './discord.service';
 import { Client, GatewayIntentBits } from 'discord.js';
+import { CommandsModule } from 'src/commands/commands.module';
 
 @Module({
+  exports: [DiscordService],
+  imports: [CommandsModule],
   providers: [
     DiscordService,
     {
@@ -13,6 +16,5 @@ import { Client, GatewayIntentBits } from 'discord.js';
     },
     ConsoleLogger,
   ],
-  exports: [DiscordService],
 })
 export class DiscordModule {}

@@ -17,7 +17,6 @@ export class DiscordService {
   public async init(): Promise<void> {
     this.client.on(Events.ClientReady, () => {
       this.logger.log(`Logged in as ${this.client.user.tag}!`);
-      this.registerCommands();
     });
 
     this.client.on(Events.InteractionCreate, async (interaction) => {
@@ -29,14 +28,6 @@ export class DiscordService {
     });
 
     await this.client.login(this.configService.get<string>('BOT_SECRET'));
-  }
-
-  private registerCommands() {
-    const commands = this.commandsService.getAllCommands();
-
-    commands.forEach((command) => {
-      this.client.application.commands.create(command.data.toJSON());
-    });
   }
 
   private handleCommandInteraction(interaction: CommandInteraction) {

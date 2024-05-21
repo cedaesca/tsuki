@@ -1,7 +1,7 @@
 import { Injectable, ConsoleLogger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Client, CommandInteraction, Events } from 'discord.js';
-import { CommandsService } from 'src/commands/commands.service';
+import { CommandsService } from '../commands/commands.service';
 
 @Injectable()
 export class DiscordService {

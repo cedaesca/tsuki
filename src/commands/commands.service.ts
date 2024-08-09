@@ -5,7 +5,7 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 import { BasicCommand } from './interfaces/basic-command.interface';
-import { COMMANDS } from './commands.constants';
+import { COMMANDS } from './constants/general-constants';
 
 @Injectable()
 export class CommandsService implements OnModuleInit {

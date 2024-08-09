@@ -9,7 +9,7 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { ConsoleLogger } from '@nestjs/common';
 import { CommandsService } from '../commands/commands.service';
-import { Command } from 'src/commands/interfaces/command.interface';
+import { BasicCommand } from 'src/commands/interfaces/basic-command.interface';
 
 jest.mock('discord.js', () => {
   const actualDiscordJs = jest.requireActual('discord.js');
@@ -127,7 +127,7 @@ describe('DiscordService', () => {
 
     jest
       .spyOn(commandsService, 'getCommand')
-      .mockReturnValue(mockCommand as unknown as Command);
+      .mockReturnValue(mockCommand as unknown as BasicCommand);
 
     const interactionHandler = getDiscordEventHandler(Events.InteractionCreate);
     await interactionHandler(interaction);

@@ -1,8 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { CommandsService } from './commands.service';
-import { COMMANDS } from './commands.constants';
 import { BasicCommand } from './interfaces/basic-command.interface';
 import { SlashCommandBuilder } from 'discord.js';
+import { COMMANDS } from './constants/general-constants';
 
 function createMockCommand(name: string, description: string): BasicCommand {
   return {

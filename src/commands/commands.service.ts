@@ -9,7 +9,7 @@ import { COMMANDS } from './constants/general-constants';
 
 @Injectable()
 export class CommandsService implements OnModuleInit {
-  private readonly DISCORD_MAX_ALLOWED_COMMANDS = 0;
+  private readonly DISCORD_MAX_ALLOWED_COMMANDS = 50;
   private commands = new Map<string, BasicCommand>();
 
   constructor(

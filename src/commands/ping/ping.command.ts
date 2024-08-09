@@ -11,7 +11,6 @@ export class PingCommand implements BasicCommand {
   public getData(): SlashCommandBuilder {
     return new SlashCommandBuilder()
       .setName('ping')
-      .setDescription('Replies with Pong!')
-      .setDescriptionLocalization('es-419', 'Responde con Pong!');
+      .setDescription('Responde con Pong!');
   }
 }

@@ -4,7 +4,7 @@ import {
   SlashCommandOptionsOnlyBuilder,
 } from 'discord.js';
 
-export interface BasicCommand {
+export interface Command {
   execute(interaction: CommandInteraction): Promise<void>;
   getData(): SlashCommandBuilder | SlashCommandOptionsOnlyBuilder;
 }

@@ -4,27 +4,25 @@ import {
   Inject,
   InternalServerErrorException,
 } from '@nestjs/common';
-import { BasicCommand } from './interfaces/basic-command.interface';
+import { Command } from './interfaces/command.interface';
 import { COMMANDS } from './constants/general-constants';
 
 @Injectable()
 export class CommandsService implements OnModuleInit {
   private readonly DISCORD_MAX_ALLOWED_COMMANDS = 50;
-  private commands = new Map<string, BasicCommand>();
+  private commands = new Map<string, Command>();
 
-  constructor(
-    @Inject(COMMANDS) private readonly commandInstances: BasicCommand[],
-  ) {}
+  constructor(@Inject(COMMANDS) private readonly commandInstances: Command[]) {}
 
   onModuleInit() {
     this.organizeCommands();
   }
 
-  public getCommand(name: string): BasicCommand | undefined {
+  public getCommand(name: string): Command | undefined {
     return this.commands.get(name);
   }
 
-  public getAllCommandInstances(): BasicCommand[] {
+  public getAllCommandInstances(): Command[] {
     return this.commandInstances;
   }
 

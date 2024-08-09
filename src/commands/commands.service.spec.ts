@@ -1,10 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { CommandsService } from './commands.service';
-import { BasicCommand } from './interfaces/basic-command.interface';
+import { Command } from './interfaces/command.interface';
 import { SlashCommandBuilder } from 'discord.js';
 import { COMMANDS } from './constants/general-constants';
 
-function createMockCommand(name: string, description: string): BasicCommand {
+function createMockCommand(name: string, description: string): Command {
   return {
     execute: () => null,
     getData: () =>
@@ -14,7 +14,7 @@ function createMockCommand(name: string, description: string): BasicCommand {
 
 describe('CommandsService', () => {
   let commandsService: CommandsService;
-  let testCommands: BasicCommand[];
+  let testCommands: Command[];
 
   beforeEach(async () => {
     testCommands = [

@@ -51,7 +51,9 @@ export class DiscordService {
   private async registerCommands() {
     const rest = new REST().setToken(this.botToken);
     const commands = this.commandsService.getAllCommandInstances();
-    const mappedCommandsData = commands.map((command) => command.data.toJSON());
+    const mappedCommandsData = commands.map((command) =>
+      command.getData().toJSON(),
+    );
 
     this.logger.log(
       `Refreshing ${mappedCommandsData.length} application commands`,

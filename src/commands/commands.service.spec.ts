@@ -1,19 +1,20 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { CommandsService } from './commands.service';
 import { COMMANDS } from './commands.constants';
-import { Command } from './interfaces/command.interface';
+import { BasicCommand } from './interfaces/basic-command.interface';
 import { SlashCommandBuilder } from 'discord.js';
 
-function createMockCommand(name: string, description: string): Command {
+function createMockCommand(name: string, description: string): BasicCommand {
   return {
-    data: new SlashCommandBuilder().setName(name).setDescription(description),
     execute: () => null,
+    getData: () =>
+      new SlashCommandBuilder().setName(name).setDescription(description),
   };
 }
 
 describe('CommandsService', () => {
   let commandsService: CommandsService;
-  let testCommands: Command[];
+  let testCommands: BasicCommand[];
 
   beforeEach(async () => {
     testCommands = [
@@ -43,12 +44,12 @@ describe('CommandsService', () => {
     commandsService.onModuleInit();
 
     testCommands.forEach((command) => {
-      expect(commandsService.getCommand(command.data.name)).toBe(command);
+      expect(commandsService.getCommand(command.getData().name)).toBe(command);
     });
   });
 
   it('should return all commands', () => {
-    const allCommands = commandsService.getAllCommands();
+    const allCommands = commandsService.getAllCommandInstances();
 
     expect(allCommands).toEqual(expect.arrayContaining(testCommands));
     expect(allCommands.length).toBe(testCommands.length);

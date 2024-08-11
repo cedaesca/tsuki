@@ -4,13 +4,13 @@ import { Command } from './interfaces/command.interface';
 import { SlashCommandBuilder } from 'discord.js';
 import { COMMANDS } from './constants/general-constants';
 
-function createMockCommand(name: string, description: string): Command {
+const createMockCommand = (name: string, description: string): Command => {
   return {
     execute: () => null,
     getData: () =>
       new SlashCommandBuilder().setName(name).setDescription(description),
   };
-}
+};
 
 describe('CommandsService', () => {
   let commandsService: CommandsService;

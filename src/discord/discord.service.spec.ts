@@ -6,6 +6,8 @@ import {
   Events,
   GatewayIntentBits,
   REST,
+  Routes,
+  SlashCommandBuilder,
 } from 'discord.js';
 import { ConfigService } from '@nestjs/config';
 import { ConsoleLogger } from '@nestjs/common';
@@ -30,12 +32,31 @@ jest.mock('discord.js', () => {
   };
 });
 
+const createMockCommand = (name: string, description: string): Command => {
+  return {
+    execute: () => null,
+    getData: () =>
+      new SlashCommandBuilder().setName(name).setDescription(description),
+  };
+};
+
 describe('DiscordService', () => {
   let service: DiscordService;
   let client: jest.Mocked<Client>;
+  let restClient: jest.Mocked<REST>;
   let configService: ConfigService;
   let logger: ConsoleLogger;
   let commandsService: CommandsService;
+
+  const testCommands = [
+    createMockCommand('command1', 'command1desc'),
+    createMockCommand('command2', 'command2desc'),
+    createMockCommand('command3', 'command3desc'),
+  ];
+
+  const botToken = 'test-bot-token';
+  const clientId = 'test-client-id';
+  const guildId = 'test-guild-id';
 
   const getDiscordEventHandler = (eventName) => {
     return client.on.mock.calls.find(([event]) => event === eventName)[1];
@@ -65,8 +86,14 @@ describe('DiscordService', () => {
               switch (key) {
                 case 'REFRESH_COMMANDS_ON_START':
                   return false;
+                case 'BOT_SECRET':
+                  return botToken;
+                case 'BOT_CLIENT_ID':
+                  return clientId;
+                case 'GUILD_ID':
+                  return guildId;
                 default:
-                  return 'test-bot-token';
+                  return 'test-value';
               }
             }),
           },
@@ -84,6 +111,7 @@ describe('DiscordService', () => {
             getCommand: jest.fn().mockReturnValue({
               execute: jest.fn(),
             }),
+            getAllCommandInstances: jest.fn().mockReturnValue(testCommands),
           },
         },
       ],
@@ -91,6 +119,7 @@ describe('DiscordService', () => {
 
     service = module.get<DiscordService>(DiscordService);
     client = module.get<Client>(Client) as jest.Mocked<Client>;
+    restClient = module.get<REST>(REST) as jest.Mocked<REST>;
     configService = module.get<ConfigService>(ConfigService);
     logger = module.get<ConsoleLogger>(ConsoleLogger);
     commandsService = module.get<CommandsService>(CommandsService);
@@ -121,6 +150,24 @@ describe('DiscordService', () => {
       clientReadyHandler();
 
       expect(logger.log).toHaveBeenCalledWith('Logged in as test-bot-tag!');
+    });
+
+    it('should refresh commands if shouldRefreshCommands is true', async () => {
+      jest.spyOn(configService, 'get').mockImplementation((key: string) => {
+        if (key === 'REFRESH_COMMANDS_ON_START') return true;
+        return 'test-bot-token';
+      });
+
+      jest.spyOn(restClient, 'put').mockResolvedValue(testCommands);
+
+      await service.init();
+
+      expect(restClient.put).toHaveBeenCalled();
+
+      expect(restClient.put).toHaveBeenCalledWith(
+        Routes.applicationGuildCommands(clientId, guildId),
+        { body: testCommands.map((command) => command.getData().toJSON()) },
+      );
     });
   });
 

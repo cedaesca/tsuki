@@ -103,28 +103,29 @@ describe('DiscordService', () => {
   });
 
   describe('on init', () => {
-    it('should login on init, using secret from env variables', async () => {
+    it('should login on init, using secret from env variables', () => {
       expect(client.login).toHaveBeenCalledWith('test-bot-token');
       expect(configService.get).toHaveBeenCalledWith('BOT_SECRET');
     });
 
-    it('should register a listener for commands interaction', async () => {
+    it('should register a listener for commands interaction', () => {
       expect(client.on).toHaveBeenCalledWith(
         Events.InteractionCreate,
         expect.any(Function),
       );
     });
 
-    it('should log an info message on login', async () => {
+    it('should log an info message on login', () => {
       const clientReadyHandler = getDiscordEventHandler(Events.ClientReady);
-      await clientReadyHandler();
+
+      clientReadyHandler();
 
       expect(logger.log).toHaveBeenCalledWith('Logged in as test-bot-tag!');
     });
   });
 
   describe('on interaction received', () => {
-    it('should not do anything if the interaction is not a command', async () => {
+    it('should not do anything if the interaction is not a command', () => {
       const interaction = {
         isCommand: jest.fn().mockReturnValue(false),
       } as unknown as CommandInteraction;
@@ -132,13 +133,14 @@ describe('DiscordService', () => {
       const interactionHandler = getDiscordEventHandler(
         Events.InteractionCreate,
       );
-      await interactionHandler(interaction);
+
+      interactionHandler(interaction);
 
       expect(interaction.isCommand).toHaveBeenCalled();
       expect(commandsService.getCommand).not.toHaveBeenCalled();
     });
 
-    it('should fetch and execute the command if it’s a valid one', async () => {
+    it('should fetch and execute the command if it’s a valid one', () => {
       const executeSpy = jest.fn();
 
       const interaction = {
@@ -159,7 +161,8 @@ describe('DiscordService', () => {
       const interactionHandler = getDiscordEventHandler(
         Events.InteractionCreate,
       );
-      await interactionHandler(interaction);
+
+      interactionHandler(interaction);
 
       expect(interaction.isCommand).toHaveBeenCalled();
       expect(commandsService.getCommand).toHaveBeenCalledWith('testCommand');

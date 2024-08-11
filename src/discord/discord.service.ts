@@ -16,6 +16,7 @@ export class DiscordService {
     private readonly configService: ConfigService,
     private readonly logger: ConsoleLogger,
     private readonly client: Client,
+    private readonly restClient: REST,
     private readonly commandsService: CommandsService,
   ) {
     this.logger.setContext(DiscordService.name);
@@ -49,7 +50,6 @@ export class DiscordService {
   }
 
   private async registerCommands() {
-    const rest = new REST().setToken(this.botToken);
     const commands = this.commandsService.getAllCommandInstances();
     const mappedCommandsData = commands.map((command) =>
       command.getData().toJSON(),
@@ -59,7 +59,7 @@ export class DiscordService {
       `Refreshing ${mappedCommandsData.length} application commands`,
     );
 
-    const data = (await rest.put(
+    const data = (await this.restClient.put(
       Routes.applicationGuildCommands(this.botClientId, this.guildId),
       { body: mappedCommandsData },
     )) as any[];

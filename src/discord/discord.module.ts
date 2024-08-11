@@ -3,10 +3,11 @@ import { DiscordService } from './discord.service';
 import { Client, GatewayIntentBits, REST } from 'discord.js';
 import { CommandsModule } from 'src/commands/commands.module';
 import { ConfigService } from '@nestjs/config';
+import { RiotGamesModule } from 'src/riot-games/riot-games.module';
 
 @Module({
   exports: [DiscordService],
-  imports: [CommandsModule],
+  imports: [CommandsModule, RiotGamesModule],
   providers: [
     DiscordService,
     {

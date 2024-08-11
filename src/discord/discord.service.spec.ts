@@ -87,60 +87,68 @@ describe('DiscordService', () => {
     expect(service).toBeDefined();
   });
 
-  it('should login on init, using secret from env variables', async () => {
-    expect(client.login).toHaveBeenCalledWith('test-bot-token');
-    expect(configService.get).toHaveBeenCalledWith('BOT_SECRET');
+  describe('on init', () => {
+    it('should login on init, using secret from env variables', async () => {
+      expect(client.login).toHaveBeenCalledWith('test-bot-token');
+      expect(configService.get).toHaveBeenCalledWith('BOT_SECRET');
+    });
+
+    it('should register a listener for commands interaction', async () => {
+      expect(client.on).toHaveBeenCalledWith(
+        Events.InteractionCreate,
+        expect.any(Function),
+      );
+    });
+
+    it('should log an info message on login', async () => {
+      const clientReadyHandler = getDiscordEventHandler(Events.ClientReady);
+      await clientReadyHandler();
+
+      expect(logger.log).toHaveBeenCalledWith('Logged in as test-bot-tag!');
+    });
   });
 
-  it('should register a listener for commands interaction', async () => {
-    expect(client.on).toHaveBeenCalledWith(
-      Events.InteractionCreate,
-      expect.any(Function),
-    );
-  });
+  describe('on interaction received', () => {
+    it('should not do anything if the interaction is not a command', async () => {
+      const interaction = {
+        isCommand: jest.fn().mockReturnValue(false),
+      } as unknown as CommandInteraction;
 
-  it('should not do anything if the interaction is not a command', async () => {
-    const interaction = {
-      isCommand: jest.fn().mockReturnValue(false),
-    } as unknown as CommandInteraction;
+      const interactionHandler = getDiscordEventHandler(
+        Events.InteractionCreate,
+      );
+      await interactionHandler(interaction);
 
-    const interactionHandler = getDiscordEventHandler(Events.InteractionCreate);
-    await interactionHandler(interaction);
+      expect(interaction.isCommand).toHaveBeenCalled();
+      expect(commandsService.getCommand).not.toHaveBeenCalled();
+    });
 
-    expect(interaction.isCommand).toHaveBeenCalled();
-    expect(commandsService.getCommand).not.toHaveBeenCalled();
-  });
+    it('should fetch and execute the command if it’s a valid one', async () => {
+      const executeSpy = jest.fn();
 
-  it('should fetch and execute the command if it’s a valid one', async () => {
-    const executeSpy = jest.fn();
+      const interaction = {
+        isCommand: jest.fn().mockReturnValue(true),
+        commandName: 'testCommand',
+        reply: jest.fn().mockResolvedValue(undefined),
+      } as unknown as CommandInteraction;
 
-    const interaction = {
-      isCommand: jest.fn().mockReturnValue(true),
-      commandName: 'testCommand',
-      reply: jest.fn().mockResolvedValue(undefined),
-    } as unknown as CommandInteraction;
+      const mockCommand = {
+        data: { name: 'testCommand' },
+        execute: executeSpy,
+      };
 
-    const mockCommand = {
-      data: { name: 'testCommand' },
-      execute: executeSpy,
-    };
+      jest
+        .spyOn(commandsService, 'getCommand')
+        .mockReturnValue(mockCommand as unknown as Command);
 
-    jest
-      .spyOn(commandsService, 'getCommand')
-      .mockReturnValue(mockCommand as unknown as Command);
+      const interactionHandler = getDiscordEventHandler(
+        Events.InteractionCreate,
+      );
+      await interactionHandler(interaction);
 
-    const interactionHandler = getDiscordEventHandler(Events.InteractionCreate);
-    await interactionHandler(interaction);
-
-    expect(interaction.isCommand).toHaveBeenCalled();
-    expect(commandsService.getCommand).toHaveBeenCalledWith('testCommand');
-    expect(executeSpy).toHaveBeenCalledWith(interaction);
-  });
-
-  it('should log an info message on login', async () => {
-    const clientReadyHandler = getDiscordEventHandler(Events.ClientReady);
-    await clientReadyHandler();
-
-    expect(logger.log).toHaveBeenCalledWith('Logged in as test-bot-tag!');
+      expect(interaction.isCommand).toHaveBeenCalled();
+      expect(commandsService.getCommand).toHaveBeenCalledWith('testCommand');
+      expect(executeSpy).toHaveBeenCalledWith(interaction);
+    });
   });
 });

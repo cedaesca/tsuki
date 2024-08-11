@@ -53,7 +53,14 @@ describe('DiscordService', () => {
         {
           provide: ConfigService,
           useValue: {
-            get: jest.fn().mockReturnValue('test-bot-token'),
+            get: jest.fn().mockImplementation((key: string) => {
+              switch (key) {
+                case 'REFRESH_COMMANDS_ON_START':
+                  return false;
+                default:
+                  return 'test-bot-token';
+              }
+            }),
           },
         },
         {

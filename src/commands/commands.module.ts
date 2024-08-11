@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
-import { COMMANDS } from './commands.constants';
 import { PingModule } from './ping/ping.module';
 import { PingCommand } from './ping/ping.command';
 import { CommandsService } from './commands.service';
+import { COMMANDS } from './constants/general-constants';
 
 @Module({
   exports: [CommandsService],

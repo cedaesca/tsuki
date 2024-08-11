@@ -5,6 +5,9 @@ import {
   CommandInteraction,
   Events,
   GatewayIntentBits,
+  REST,
+  Routes,
+  SlashCommandBuilder,
 } from 'discord.js';
 import { ConfigService } from '@nestjs/config';
 import { ConsoleLogger } from '@nestjs/common';
@@ -23,15 +26,37 @@ jest.mock('discord.js', () => {
       },
       emit: jest.fn(),
     })),
+    REST: jest.fn(() => ({
+      put: jest.fn(),
+    })),
   };
 });
+
+const createMockCommand = (name: string, description: string): Command => {
+  return {
+    execute: () => null,
+    getData: () =>
+      new SlashCommandBuilder().setName(name).setDescription(description),
+  };
+};
 
 describe('DiscordService', () => {
   let service: DiscordService;
   let client: jest.Mocked<Client>;
+  let restClient: jest.Mocked<REST>;
   let configService: ConfigService;
   let logger: ConsoleLogger;
   let commandsService: CommandsService;
+
+  const testCommands = [
+    createMockCommand('command1', 'command1desc'),
+    createMockCommand('command2', 'command2desc'),
+    createMockCommand('command3', 'command3desc'),
+  ];
+
+  const botToken = 'test-bot-token';
+  const clientId = 'test-client-id';
+  const guildId = 'test-guild-id';
 
   const getDiscordEventHandler = (eventName) => {
     return client.on.mock.calls.find(([event]) => event === eventName)[1];
@@ -51,9 +76,26 @@ describe('DiscordService', () => {
           }),
         },
         {
+          provide: REST,
+          useValue: new REST(),
+        },
+        {
           provide: ConfigService,
           useValue: {
-            get: jest.fn().mockReturnValue('test-bot-token'),
+            get: jest.fn().mockImplementation((key: string) => {
+              switch (key) {
+                case 'REFRESH_COMMANDS_ON_START':
+                  return false;
+                case 'BOT_SECRET':
+                  return botToken;
+                case 'BOT_CLIENT_ID':
+                  return clientId;
+                case 'GUILD_ID':
+                  return guildId;
+                default:
+                  return 'test-value';
+              }
+            }),
           },
         },
         {
@@ -69,6 +111,7 @@ describe('DiscordService', () => {
             getCommand: jest.fn().mockReturnValue({
               execute: jest.fn(),
             }),
+            getAllCommandInstances: jest.fn().mockReturnValue(testCommands),
           },
         },
       ],
@@ -76,6 +119,7 @@ describe('DiscordService', () => {
 
     service = module.get<DiscordService>(DiscordService);
     client = module.get<Client>(Client) as jest.Mocked<Client>;
+    restClient = module.get<REST>(REST) as jest.Mocked<REST>;
     configService = module.get<ConfigService>(ConfigService);
     logger = module.get<ConsoleLogger>(ConsoleLogger);
     commandsService = module.get<CommandsService>(CommandsService);
@@ -87,60 +131,89 @@ describe('DiscordService', () => {
     expect(service).toBeDefined();
   });
 
-  it('should login on init, using secret from env variables', async () => {
-    expect(client.login).toHaveBeenCalledWith('test-bot-token');
-    expect(configService.get).toHaveBeenCalledWith('BOT_SECRET');
+  describe('on init', () => {
+    it('should login on init, using secret from env variables', () => {
+      expect(client.login).toHaveBeenCalledWith('test-bot-token');
+      expect(configService.get).toHaveBeenCalledWith('BOT_SECRET');
+    });
+
+    it('should register a listener for commands interaction', () => {
+      expect(client.on).toHaveBeenCalledWith(
+        Events.InteractionCreate,
+        expect.any(Function),
+      );
+    });
+
+    it('should log an info message on login', () => {
+      const clientReadyHandler = getDiscordEventHandler(Events.ClientReady);
+
+      clientReadyHandler();
+
+      expect(logger.log).toHaveBeenCalledWith('Logged in as test-bot-tag!');
+    });
+
+    it('should refresh commands if shouldRefreshCommands is true', async () => {
+      jest.spyOn(configService, 'get').mockImplementation((key: string) => {
+        if (key === 'REFRESH_COMMANDS_ON_START') return true;
+        return 'test-bot-token';
+      });
+
+      jest.spyOn(restClient, 'put').mockResolvedValue(testCommands);
+
+      await service.init();
+
+      expect(restClient.put).toHaveBeenCalled();
+
+      expect(restClient.put).toHaveBeenCalledWith(
+        Routes.applicationGuildCommands(clientId, guildId),
+        { body: testCommands.map((command) => command.getData().toJSON()) },
+      );
+    });
   });
 
-  it('should register a listener for commands interaction', async () => {
-    expect(client.on).toHaveBeenCalledWith(
-      Events.InteractionCreate,
-      expect.any(Function),
-    );
-  });
+  describe('on interaction received', () => {
+    it('should not do anything if the interaction is not a command', () => {
+      const interaction = {
+        isCommand: jest.fn().mockReturnValue(false),
+      } as unknown as CommandInteraction;
 
-  it('should not do anything if the interaction is not a command', async () => {
-    const interaction = {
-      isCommand: jest.fn().mockReturnValue(false),
-    } as unknown as CommandInteraction;
+      const interactionHandler = getDiscordEventHandler(
+        Events.InteractionCreate,
+      );
 
-    const interactionHandler = getDiscordEventHandler(Events.InteractionCreate);
-    await interactionHandler(interaction);
+      interactionHandler(interaction);
 
-    expect(interaction.isCommand).toHaveBeenCalled();
-    expect(commandsService.getCommand).not.toHaveBeenCalled();
-  });
+      expect(interaction.isCommand).toHaveBeenCalled();
+      expect(commandsService.getCommand).not.toHaveBeenCalled();
+    });
 
-  it('should fetch and execute the command if it’s a valid one', async () => {
-    const executeSpy = jest.fn();
+    it('should fetch and execute the command if it’s a valid one', () => {
+      const executeSpy = jest.fn();
 
-    const interaction = {
-      isCommand: jest.fn().mockReturnValue(true),
-      commandName: 'testCommand',
-      reply: jest.fn().mockResolvedValue(undefined),
-    } as unknown as CommandInteraction;
+      const interaction = {
+        isCommand: jest.fn().mockReturnValue(true),
+        commandName: 'testCommand',
+        reply: jest.fn().mockResolvedValue(undefined),
+      } as unknown as CommandInteraction;
 
-    const mockCommand = {
-      data: { name: 'testCommand' },
-      execute: executeSpy,
-    };
+      const mockCommand = {
+        data: { name: 'testCommand' },
+        execute: executeSpy,
+      };
 
-    jest
-      .spyOn(commandsService, 'getCommand')
-      .mockReturnValue(mockCommand as unknown as Command);
+      jest
+        .spyOn(commandsService, 'getCommand')
+        .mockReturnValue(mockCommand as unknown as Command);
 
-    const interactionHandler = getDiscordEventHandler(Events.InteractionCreate);
-    await interactionHandler(interaction);
+      const interactionHandler = getDiscordEventHandler(
+        Events.InteractionCreate,
+      );
 
-    expect(interaction.isCommand).toHaveBeenCalled();
-    expect(commandsService.getCommand).toHaveBeenCalledWith('testCommand');
-    expect(executeSpy).toHaveBeenCalledWith(interaction);
-  });
+      interactionHandler(interaction);
 
-  it('should log an info message on login', async () => {
-    const clientReadyHandler = getDiscordEventHandler(Events.ClientReady);
-    await clientReadyHandler();
-
-    expect(logger.log).toHaveBeenCalledWith('Logged in as test-bot-tag!');
+      expect(interaction.isCommand).toHaveBeenCalled();
+      expect(commandsService.getCommand).toHaveBeenCalledWith('testCommand');
+      expect(executeSpy).toHaveBeenCalledWith(interaction);
+    });
   });
 });

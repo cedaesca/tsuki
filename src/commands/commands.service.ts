@@ -5,11 +5,11 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 import { Command } from './interfaces/command.interface';
-import { COMMANDS } from './commands.constants';
+import { COMMANDS } from './constants/general-constants';
 
 @Injectable()
 export class CommandsService implements OnModuleInit {
-  private readonly DISCORD_MAX_ALLOWED_COMMANDS = 0;
+  private readonly DISCORD_MAX_ALLOWED_COMMANDS = 50;
   private commands = new Map<string, Command>();
 
   constructor(@Inject(COMMANDS) private readonly commandInstances: Command[]) {}
@@ -34,7 +34,7 @@ export class CommandsService implements OnModuleInit {
         );
       }
 
-      this.commands.set(command.data.name, command);
+      this.commands.set(command.getData().name, command);
     });
   }
 }

@@ -5,6 +5,7 @@ import {
   CommandInteraction,
   Events,
   GatewayIntentBits,
+  REST,
 } from 'discord.js';
 import { ConfigService } from '@nestjs/config';
 import { ConsoleLogger } from '@nestjs/common';
@@ -22,6 +23,9 @@ jest.mock('discord.js', () => {
         tag: 'test-bot-tag',
       },
       emit: jest.fn(),
+    })),
+    REST: jest.fn(() => ({
+      put: jest.fn(),
     })),
   };
 });
@@ -49,6 +53,10 @@ describe('DiscordService', () => {
               GatewayIntentBits.GuildMessages,
             ],
           }),
+        },
+        {
+          provide: REST,
+          useValue: new REST(),
         },
         {
           provide: ConfigService,

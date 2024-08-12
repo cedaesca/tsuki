@@ -1,1 +1,2 @@
 export const COMMANDS = 'COMMANDS';
+export const COMMAND_METADATA = 'COMMAND_METADATA';

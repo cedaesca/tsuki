@@ -12,7 +12,7 @@ const createMockCommand = (name: string, description: string): Command => {
   };
 };
 
-describe('CommandsService', () => {
+describe(CommandsService.name, () => {
   let commandsService: CommandsService;
   let testCommands: Command[];
 

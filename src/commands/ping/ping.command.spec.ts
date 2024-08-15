@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { PingCommand } from './ping.command';
 import { CommandInteraction } from 'discord.js';
 
-describe('PingCommand', () => {
+describe(PingCommand.name, () => {
   let command: PingCommand;
   let interaction: CommandInteraction;
 

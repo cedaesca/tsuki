@@ -40,7 +40,7 @@ const createMockCommand = (name: string, description: string): Command => {
   };
 };
 
-describe('DiscordService', () => {
+describe(DiscordService.name, () => {
   let service: DiscordService;
   let client: jest.Mocked<Client>;
   let restClient: jest.Mocked<REST>;

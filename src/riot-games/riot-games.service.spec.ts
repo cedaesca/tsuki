@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { RiotGamesService } from './riot-games.service';
 
-describe('RiotGamesService', () => {
+describe(RiotGamesService.name, () => {
   let service: RiotGamesService;
 
   beforeEach(async () => {

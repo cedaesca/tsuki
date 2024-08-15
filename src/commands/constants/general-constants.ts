@@ -1,1 +1,2 @@
 export const COMMANDS = 'COMMANDS';
+export const IS_COMMAND_METAKEY = 'IS_COMMAND_METAKEY';

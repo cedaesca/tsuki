@@ -1,20 +1,25 @@
 import { Module } from '@nestjs/common';
 import { PingModule } from './ping/ping.module';
-import { PingCommand } from './ping/ping.command';
 import { CommandsService } from './commands.service';
 import { COMMANDS } from './constants/general-constants';
+import { DiscoveryModule } from '@nestjs/core';
+import { CommandDiscoveryService } from './command-discovery.service';
+import { Command } from './interfaces/command.interface';
 
 @Module({
   exports: [CommandsService],
-  imports: [PingModule],
+  imports: [DiscoveryModule, PingModule],
   providers: [
     CommandsService,
+    CommandDiscoveryService,
     {
       provide: COMMANDS,
-      useFactory: (pingCommand: PingCommand) => {
-        return [pingCommand];
+      useFactory: (
+        commandDiscoveryService: CommandDiscoveryService,
+      ): Command[] => {
+        return commandDiscoveryService.discoverCommands();
       },
-      inject: [PingCommand],
+      inject: [CommandDiscoveryService],
     },
   ],
 })

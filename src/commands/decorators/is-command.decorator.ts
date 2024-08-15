@@ -1,4 +1,4 @@
 import { SetMetadata } from '@nestjs/common';
-import { COMMAND_METADATA } from '../constants/general-constants';
+import { IS_COMMAND_METAKEY } from '../constants/general-constants';
 
-export const IsCommand = () => SetMetadata(COMMAND_METADATA, true);
+export const IsCommand = () => SetMetadata(IS_COMMAND_METAKEY, true);
